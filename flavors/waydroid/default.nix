@@ -16,13 +16,13 @@ in mkIf (config.flavor == "waydroid")
   buildDateTime = mkDefault 1629060864;
 
   androidVersion = mkDefault 10;
-  productNamePrefix = "lineage_anbox_";
+  productNamePrefix = "lineage_waydroid_";
   variant = mkDefault "userdebug";
 
   source.dirs = mkMerge [
     repoDirs
     (lib.mapAttrs (relpath: patches: {
-      patches = (builtins.map (p: "${config.source.dirs."anbox-patches".src}/${relpath}/${p}") patches);
+      patches = (builtins.map (p: "${config.source.dirs."vendor/extra".src}/${patches.dir}/${p}") patches.files);
     }) patchMetadata)
   ];
 
