@@ -11,9 +11,11 @@ let
   ;
   repoDirs = lib.importJSON (./. + "/repo-lineage-17.1.json");
   patchMetadata = lib.importJSON ./patch-metadata.json;
+  repoDateTimes = lib.mapAttrsToList (name: value: value.dateTime) repoDirs;
+  maxRepoDateTime = lib.foldl (a: b: lib.max a b) 0 repoDateTimes;
 in mkIf (config.flavor == "waydroid")
 {
-  buildDateTime = mkDefault 1629060864;
+  buildDateTime = mkDefault maxRepoDateTime;
 
   androidVersion = mkDefault 10;
   productNamePrefix = "lineage_waydroid_";
