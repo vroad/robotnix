@@ -104,6 +104,12 @@ let
         description = "Additional commands to run after patching source directory.";
       };
 
+      localDir = mkOption {
+        default = "";
+        type = types.str;
+        description = "Path to local source directory for development.";
+      };
+
       unpackScript = mkOption {
         type = types.str;
         internal = true;
@@ -188,18 +194,27 @@ let
       in mkIf (mountPoints != [])
         ((lib.concatMapStringsSep "\n" (mountPoint: "mkdir -p ${mountPoint}") mountPoints) + "\n");
 
-      unpackScript = (lib.optionalString config.enable ''
-        mkdir -p ${config.relpath}
-        ${pkgs.utillinux}/bin/mount --bind ${config.src} ${config.relpath}
-      '')
-      + (lib.concatMapStringsSep "\n" (c: ''
-        mkdir -p $(dirname ${c.dest})
-        cp --reflink=auto -f ${config.relpath}/${c.src} ${c.dest}
-      '') config.copyfiles)
-      + (lib.concatMapStringsSep "\n" (c: ''
-        mkdir -p $(dirname ${c.dest})
-        ln -sf --relative ${config.relpath}/${c.src} ${c.dest}
-      '') config.linkfiles);
+      unpackScript = let
+        regularScript = (lib.optionalString config.enable ''
+          mkdir -p ${config.relpath}
+          ${pkgs.utillinux}/bin/mount --bind ${config.src} ${config.relpath}
+        '')
+        + (lib.concatMapStringsSep "\n" (c: ''
+          mkdir -p $(dirname ${c.dest})
+          cp --reflink=auto -f ${config.relpath}/${c.src} ${c.dest}
+        '') config.copyfiles)
+        + (lib.concatMapStringsSep "\n" (c: ''
+          mkdir -p $(dirname ${c.dest})
+          ln -sf --relative ${config.relpath}/${c.src} ${c.dest}
+        '') config.linkfiles);
+        localDirScript = ''
+          mkdir -p ${config.relpath}
+          ${pkgs.utillinux}/bin/mount --bind ${config.localDir} ${config.relpath}
+        '';
+      in
+        if config.localDir == ""
+          then regularScript
+        else localDirScript;
     };
   });
 in
@@ -240,6 +255,14 @@ in
           Directories to include in Android build process.
           Normally set by the output of `mk_repo_file.py`.
           However, additional source directories can be added to the build here using this option as well.
+        '';
+      };
+
+      enableLocalRepoFile = mkOption {
+        default = false;
+        description = ''
+          Enables loading of local repo file, which allows replacing repository with local directory for development.
+          Only usable with debugEnterEnv script and supported flavors.
         '';
       };
 

@@ -9,7 +9,11 @@ let
     mkMerge
     mkBefore
   ;
-  repoDirs = lib.importJSON (./. + "/repo-lineage-17.1.json");
+  repoDirs = lib.importJSON ./repo-lineage-17.1.json;
+  localRepoFile = ./repo-lineage-17.1.local.json;
+  localRepoDirs = if config.source.enableLocalRepoFile
+    then lib.importJSON ./repo-lineage-17.1.local.json
+    else {};
   patchMetadata = lib.importJSON ./patch-metadata.json;
   repoDateTimes = lib.mapAttrsToList (name: value: value.dateTime) repoDirs;
   maxRepoDateTime = lib.foldl (a: b: lib.max a b) 0 repoDateTimes;
@@ -26,6 +30,7 @@ in mkIf (config.flavor == "waydroid")
     (lib.mapAttrs (relpath: patches: {
       patches = (builtins.map (p: "${config.source.dirs."vendor/extra".src}/${patches.dir}/${p}") patches.files);
     }) patchMetadata)
+    localRepoDirs
   ];
 
   envVars.RELEASE_TYPE = mkDefault "EXPERIMENTAL";  # Other options are RELEASE NIGHTLY SNAPSHOT EXPERIMENTAL
