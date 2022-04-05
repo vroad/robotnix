@@ -53,7 +53,7 @@ Robotnix can produce a few helper scripts that can make Android development easi
 
 Running `nix-build --arg configuration <cfg> -A <output>` for the outputs below will produce the corresponding helper script, using the provided robotnix configuration.
 
-- `config.build.debugEnterEnv` produces a script which enters an FHS environment with the required dependencies, as well as the Android source files bind-mounted under the current directory.  Useful in conjunction with `cd $(mktemp -d)` to enter a temporary directory.  Files are bind-mounted readonly, so files cannot be edited ad-hoc using this script.
+- `config.build.debugEnterEnv` produces a script which enters an FHS environment with the required dependencies, as well as the Android source files bind-mounted under the current directory.  Useful in conjunction with `cd $(mktemp -d)` to enter a temporary directory.  Files are bind-mounted readonly unless you configure local source directories (See "Configuring local repo file for development" section below).
 
 The following outputs can be useful with an existing Android source checkout made using `repo`.
 - `config.build.env` produces a `robotnix-build` script under `bin/` which enters an FHS environment that contains all required dependencies to build Android.
@@ -133,6 +133,21 @@ The set of components available may be found in `components.json`.
 Only what Android considers the "installed output" of the components is copied into the resuting derivation, and not "intermediate" results.
 Sometimes these intermediate results are what is desired, in which case the user should manually set the `installPhase` for a `mkAndroid` invokation.
 For more detailed information about what exactly these components produce as "installed output", see the `config.build.moduleInfo` output for a build.
+
+## Configuring local repo file for development
+Source directory can be overridden for testing changing locally with `debugEnterEnv` script which we described above.
+Currently, only waydroid flavor supports this feature.
+For example, to replace `hardware/waydroid` directory with your local git working copy in `/home/nixos/git/android_hardware_waydroid/`, create a JSON file in `flavors/waydroid/repo-lineage-17.1.local.json` with the following content:
+
+```json
+{
+  "hardware/waydroid": {
+    "localDir": "/home/nixos/git/android_hardware_waydroid/"
+  }
+}
+```
+
+And then run `nix-build --no-out-link --arg configuration '{ device="x86_64"; flavor="waydroid"; source.enableLocalRepoFile=true; }' -A config.build.debugEnterEnv` to build debugging script with source directory overrides enabled.
 
 ## Additional Notes
 Robotnix bind mounts the source directories from `/nix/store`.
