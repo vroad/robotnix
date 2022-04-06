@@ -205,7 +205,7 @@ let
         '') config.copyfiles)
         + (lib.concatMapStringsSep "\n" (c: ''
           mkdir -p $(dirname ${c.dest})
-          ln -sf --relative ${config.relpath}/${c.src} ${c.dest}
+          ln -sfn --relative ${config.relpath}/${c.src} ${c.dest}
         '') config.linkfiles);
         localDirScript = ''
           mkdir -p ${config.relpath}
