@@ -512,9 +512,6 @@ in
         targetPkgs = pkgs: config.envPackages;
         multiPkgs = pkgs: with pkgs; [ zlib ];
       };
-
-      # For pre-fetching source code from git
-      sourceDirsAsList = builtins.attrValues config.source.dirs;
     };
   }];
 }
