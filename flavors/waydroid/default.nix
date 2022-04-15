@@ -57,8 +57,11 @@ in mkIf (config.flavor == "waydroid")
           $ANDROID_PRODUCT_OUT/build_fingerprint.txt \
           $ANDROID_PRODUCT_OUT/installed-files.txt
 
-        cp --reflink=auto -r $ANDROID_PRODUCT_OUT/system.img $out
-        cp --reflink=auto -r $ANDROID_PRODUCT_OUT/vendor.img $out
+        for v in system.img vendor.img; do
+          ${pkgs.simg2img}/bin/simg2img $ANDROID_PRODUCT_OUT/$v $out/$v
+          ${pkgs.e2fsprogs}/bin/e2fsck -fy $out/$v
+          ${pkgs.e2fsprogs}/bin/resize2fs -M $out/$v
+        done
       '';
     };
   };
