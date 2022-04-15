@@ -20,10 +20,6 @@ jobs:
       run: echo "NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" >> "$GITHUB_ENV"
     - name: Show nixpkgs version
       run: nix-instantiate --eval -E '(import <nixpkgs> {}).lib.version'
-    - name: Set git user name and email
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
     - name: Run update.sh
       working-directory: flavors/waydroid
       run: |
@@ -34,3 +30,4 @@ jobs:
         commit-message: "waydroid: Update repositories"
         title: "waydroid: Update repositories"
         branch: update-waydroid-repos
+        author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
