@@ -1,0 +1,33 @@
+name: "Update waydroid repos"
+on:
+  workflow_dispatch:
+jobs:
+  update-waydroid-repos:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Install nix
+      uses: cachix/install-nix-action@v17
+      with:
+        nix_path: nixpkgs=channel:nixos-21.11
+        install_url: https://releases.nixos.org/nix/nix-2.7.0/install
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          substituters = https://cache.nixos.org https://robotnix.cachix.org
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= robotnix.cachix.org-1:+y88eX6KTvkJyernp1knbpttlaLTboVp4vq/b24BIv0=
+    - name: Set NIX_SSL_CERT_FILE # Required on Amazon Linux 2 runner
+      run: echo "NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" >> "$GITHUB_ENV"
+    - name: Show nixpkgs version
+      run: nix-instantiate --eval -E '(import <nixpkgs> {}).lib.version'
+    - name: Run update.sh
+      working-directory: flavors/waydroid
+      run: |
+        nix-shell ../../shell.nix --run ./update.sh
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        commit-message: "waydroid: Update repositories"
+        title: "waydroid: Update repositories"
+        branch: update-waydroid-repos
+        author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
