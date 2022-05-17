@@ -9,4 +9,5 @@ let
     else {}
   );
 in
-  filterForDerivations (import ./release.nix { inherit pkgs; })
+  lib.filterAttrsRecursive (n: v: v != {})
+    (filterForDerivations (import ./release.nix { inherit pkgs; }))
